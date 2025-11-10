@@ -1,0 +1,8 @@
+timestamp,2025-09-17T07:28:17.740031
+n_total,450
+n_train,360
+n_test,90
+test_mse,0.003621699321632392
+test_rmse,0.06018055600966472
+test_r2,0.9934366018200236
+model_path,E:\AI-Engineering-Capstone-Projects\AirTempTs\PRAICP-1003-AirTempTS\results\models\final_pipeline.joblib

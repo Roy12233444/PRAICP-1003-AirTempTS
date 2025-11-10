@@ -1,0 +1,53 @@
+{
+  "rows": 462,
+  "years": {
+    "min": 1982,
+    "max": 2020
+  },
+  "slope_degC_per_year": 0.02447537112010746,
+  "slope_degC_per_decade": 0.24475371120107461,
+  "top_hottest": [
+    {
+      "month": "1998-03",
+      "mean_temp": 29.5
+    },
+    {
+      "month": "2016-04",
+      "mean_temp": 29.4
+    },
+    {
+      "month": "1983-04",
+      "mean_temp": 29.4
+    },
+    {
+      "month": "1998-05",
+      "mean_temp": 29.4
+    },
+    {
+      "month": "1997-06",
+      "mean_temp": 29.3
+    }
+  ],
+  "top_coldest": [
+    {
+      "month": "1983-12",
+      "mean_temp": 25.4
+    },
+    {
+      "month": "1992-12",
+      "mean_temp": 25.5
+    },
+    {
+      "month": "1987-01",
+      "mean_temp": 25.5
+    },
+    {
+      "month": "1984-01",
+      "mean_temp": 25.5
+    },
+    {
+      "month": "1991-12",
+      "mean_temp": 25.6
+    }
+  ]
+}

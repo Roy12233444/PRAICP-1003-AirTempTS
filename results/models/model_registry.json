@@ -1,0 +1,182 @@
+{
+  "base_lgb_full.joblib": {
+    "file": "base_lgb_full.joblib",
+    "path": "E:\\AI-Engineering-Capstone-Projects\\AirTempTs\\PRAICP-1003-AirTempTS\\results\\models\\base_lgb_full.joblib",
+    "role_guess": "lgb",
+    "type": "predictor",
+    "predictable": true,
+    "notes": null,
+    "feature_names_len": 59
+  },
+  "base_rf_full.joblib": {
+    "file": "base_rf_full.joblib",
+    "path": "E:\\AI-Engineering-Capstone-Projects\\AirTempTs\\PRAICP-1003-AirTempTS\\results\\models\\base_rf_full.joblib",
+    "role_guess": "rf",
+    "type": "predictor",
+    "predictable": true,
+    "notes": null,
+    "feature_names_len": 59
+  },
+  "base_xgb_full.joblib": {
+    "file": "base_xgb_full.joblib",
+    "path": "E:\\AI-Engineering-Capstone-Projects\\AirTempTs\\PRAICP-1003-AirTempTS\\results\\models\\base_xgb_full.joblib",
+    "role_guess": "xgb",
+    "type": "predictor",
+    "predictable": true,
+    "notes": null,
+    "feature_names_len": 59
+  },
+  "final_new_features_pipeline.joblib": {
+    "file": "final_new_features_pipeline.joblib",
+    "path": "E:\\AI-Engineering-Capstone-Projects\\AirTempTs\\PRAICP-1003-AirTempTS\\results\\models\\final_new_features_pipeline.joblib",
+    "role_guess": "other",
+    "type": "predictor",
+    "predictable": true,
+    "notes": null,
+    "feature_names_len": null
+  },
+  "final_new_features_pipeline_20250917T080426.joblib": {
+    "file": "final_new_features_pipeline_20250917T080426.joblib",
+    "path": "E:\\AI-Engineering-Capstone-Projects\\AirTempTs\\PRAICP-1003-AirTempTS\\results\\models\\final_new_features_pipeline_20250917T080426.joblib",
+    "role_guess": "other",
+    "type": "predictor",
+    "predictable": true,
+    "notes": null,
+    "feature_names_len": null
+  },
+  "final_pipeline.joblib": {
+    "file": "final_pipeline.joblib",
+    "path": "E:\\AI-Engineering-Capstone-Projects\\AirTempTs\\PRAICP-1003-AirTempTS\\results\\models\\final_pipeline.joblib",
+    "role_guess": "other",
+    "type": "predictor",
+    "predictable": true,
+    "notes": null,
+    "feature_names_len": 37
+  },
+  "lgb_final.joblib": {
+    "file": "lgb_final.joblib",
+    "path": "E:\\AI-Engineering-Capstone-Projects\\AirTempTs\\PRAICP-1003-AirTempTS\\results\\models\\lgb_final.joblib",
+    "role_guess": "lgb",
+    "type": "predictor",
+    "predictable": true,
+    "notes": null,
+    "feature_names_len": 59
+  },
+  "lgb_fold_last.joblib": {
+    "file": "lgb_fold_last.joblib",
+    "path": "E:\\AI-Engineering-Capstone-Projects\\AirTempTs\\PRAICP-1003-AirTempTS\\results\\models\\lgb_fold_last.joblib",
+    "role_guess": "lgb",
+    "type": "predictor",
+    "predictable": true,
+    "notes": null,
+    "feature_names_len": 59
+  },
+  "meta_lgb_lgb.joblib": {
+    "file": "meta_lgb_lgb.joblib",
+    "path": "E:\\AI-Engineering-Capstone-Projects\\AirTempTs\\PRAICP-1003-AirTempTS\\results\\models\\meta_lgb_lgb.joblib",
+    "role_guess": "lgb",
+    "type": "predictor",
+    "predictable": true,
+    "notes": null,
+    "feature_names_len": 3
+  },
+  "meta_lgb_safe_v2.joblib": {
+    "file": "meta_lgb_safe_v2.joblib",
+    "path": "E:\\AI-Engineering-Capstone-Projects\\AirTempTs\\PRAICP-1003-AirTempTS\\results\\models\\meta_lgb_safe_v2.joblib",
+    "role_guess": "lgb",
+    "type": "predictor",
+    "predictable": true,
+    "notes": null,
+    "feature_names_len": 3
+  },
+  "meta_ridge.joblib": {
+    "file": "meta_ridge.joblib",
+    "path": "E:\\AI-Engineering-Capstone-Projects\\AirTempTs\\PRAICP-1003-AirTempTS\\results\\models\\meta_ridge.joblib",
+    "role_guess": "meta",
+    "type": "predictor",
+    "predictable": true,
+    "notes": null,
+    "feature_names_len": null
+  },
+  "meta_ridge_ridge.joblib": {
+    "file": "meta_ridge_ridge.joblib",
+    "path": "E:\\AI-Engineering-Capstone-Projects\\AirTempTs\\PRAICP-1003-AirTempTS\\results\\models\\meta_ridge_ridge.joblib",
+    "role_guess": "meta",
+    "type": "predictor",
+    "predictable": true,
+    "notes": null,
+    "feature_names_len": 3
+  },
+  "meta_ridge_safe_v2.joblib": {
+    "file": "meta_ridge_safe_v2.joblib",
+    "path": "E:\\AI-Engineering-Capstone-Projects\\AirTempTs\\PRAICP-1003-AirTempTS\\results\\models\\meta_ridge_safe_v2.joblib",
+    "role_guess": "meta",
+    "type": "predictor",
+    "predictable": true,
+    "notes": null,
+    "feature_names_len": 3
+  },
+  "meta_xgb_safe_v2.joblib": {
+    "file": "meta_xgb_safe_v2.joblib",
+    "path": "E:\\AI-Engineering-Capstone-Projects\\AirTempTs\\PRAICP-1003-AirTempTS\\results\\models\\meta_xgb_safe_v2.joblib",
+    "role_guess": "xgb",
+    "type": "predictor",
+    "predictable": true,
+    "notes": null,
+    "feature_names_len": 3
+  },
+  "meta_xgb_xgb.joblib": {
+    "file": "meta_xgb_xgb.joblib",
+    "path": "E:\\AI-Engineering-Capstone-Projects\\AirTempTs\\PRAICP-1003-AirTempTS\\results\\models\\meta_xgb_xgb.joblib",
+    "role_guess": "xgb",
+    "type": "predictor",
+    "predictable": true,
+    "notes": null,
+    "feature_names_len": 3
+  },
+  "rf_final.joblib": {
+    "file": "rf_final.joblib",
+    "path": "E:\\AI-Engineering-Capstone-Projects\\AirTempTs\\PRAICP-1003-AirTempTS\\results\\models\\rf_final.joblib",
+    "role_guess": "rf",
+    "type": "predictor",
+    "predictable": true,
+    "notes": null,
+    "feature_names_len": 59
+  },
+  "rf_fold_last.joblib": {
+    "file": "rf_fold_last.joblib",
+    "path": "E:\\AI-Engineering-Capstone-Projects\\AirTempTs\\PRAICP-1003-AirTempTS\\results\\models\\rf_fold_last.joblib",
+    "role_guess": "rf",
+    "type": "predictor",
+    "predictable": true,
+    "notes": null,
+    "feature_names_len": 59
+  },
+  "stacking_meta_ridge.joblib": {
+    "file": "stacking_meta_ridge.joblib",
+    "path": "E:\\AI-Engineering-Capstone-Projects\\AirTempTs\\PRAICP-1003-AirTempTS\\results\\models\\stacking_meta_ridge.joblib",
+    "role_guess": "meta",
+    "type": "predictor",
+    "predictable": true,
+    "notes": null,
+    "feature_names_len": null
+  },
+  "xgb_final.joblib": {
+    "file": "xgb_final.joblib",
+    "path": "E:\\AI-Engineering-Capstone-Projects\\AirTempTs\\PRAICP-1003-AirTempTS\\results\\models\\xgb_final.joblib",
+    "role_guess": "xgb",
+    "type": "predictor",
+    "predictable": true,
+    "notes": null,
+    "feature_names_len": 59
+  },
+  "xgb_fold_last.joblib": {
+    "file": "xgb_fold_last.joblib",
+    "path": "E:\\AI-Engineering-Capstone-Projects\\AirTempTs\\PRAICP-1003-AirTempTS\\results\\models\\xgb_fold_last.joblib",
+    "role_guess": "xgb",
+    "type": "predictor",
+    "predictable": true,
+    "notes": null,
+    "feature_names_len": 59
+  }
+}

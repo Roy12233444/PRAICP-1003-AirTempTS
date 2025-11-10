@@ -1,0 +1,1 @@
+{"MAE":0.0184462212,"RMSE":0.0385080853,"R2":0.996991991,"model_path":"E:\\AI-Engineering-Capstone-Projects\\AirTempTs\\PRAICP-1003-AirTempTS\\results\\models\\autogluon_model","data_csv":"E:\\AI-Engineering-Capstone-Projects\\AirTempTs\\PRAICP-1003-AirTempTS\\data\\surface-air-temperature-monthly-mean-extended.csv","holdout_rows":74}

@@ -1,0 +1,63 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+
+# Virtual Environments
+.Airtemp/
+.venv/
+venv/
+ENV/
+env/
+
+# Jupyter Notebook
+.ipynb_checkpoints/
+*.ipynb_checkpoints
+
+# IDEs
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Project Specific
+airtempts.db
+*.db
+*.sqlite
+*.sqlite3
+
+# Logs
+*.log
+logs/
+*.out
+
+# Coverage
+.coverage
+.early.coverage
+htmlcov/
+.tox/
+.coverage.*
+
+# Build & Distribution
+build/
+dist/
+*.egg-info/
+*.egg
+
+# Models & Large Files (optional - uncomment if needed)
+# results/models/*.pkl
+# results/models/*.h5
+# results/models/*.pt
+
+# Temporary Files
+*.tmp
+*.bak
+temp/
+tmp/

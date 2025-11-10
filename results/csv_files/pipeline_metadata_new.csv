@@ -1,0 +1,7 @@
+,0
+timestamp,2025-09-17T07:52:58.694316
+af_available,True
+used_autofeat,False
+final_model,LGBMRegressor
+n_features_before,81
+n_features_after,81

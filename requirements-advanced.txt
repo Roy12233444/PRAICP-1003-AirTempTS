@@ -1,0 +1,54 @@
+# Advanced / heavy packages (install one-by-one; Python 3.10)
+# Deep learning
+torch
+torchvision
+tensorflow
+
+# Advanced forecasting / time-series frameworks
+prophet           # may require build tools on Windows; consider conda
+neuralprophet
+darts
+gluonts
+
+# Probabilistic / Bayesian
+pymc3
+pyro-ppl
+tensorflow-probability
+
+# AutoML / feature / modeling toolkits
+pycaret
+fastai
+skorch
+
+# Model interpretability / uncertainty
+mapie
+uncertainty-toolbox
+crepes
+
+# NLP / Transformers
+transformers
+sentence-transformers
+
+# Forecasting toolboxes / meta
+# kats
+pmdarima           # also in core; safe to include here if not installed earlier
+
+# Optional heavy profiling / reporting
+ydata-profiling
+sweetviz
+
+# requirements-advanced.txt  (heavy / optional)
+torch
+torchvision
+torchaudio
+pytorch-lightning
+pytorch-forecasting
+darts
+prophet
+pykoopman
+mlflow
+seaborn
+flask
+fastapi
+uvicorn
+# Note: torch-geometric / pyg must be installed via their recommended command (see docs)

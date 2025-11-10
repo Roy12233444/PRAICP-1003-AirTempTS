@@ -1,0 +1,8 @@
+{
+  "factorize_mapping": {
+    "Low": 0,
+    "Medium": 1,
+    "High": 2
+  },
+  "final_target_col": "SWEETVIZ_TARGET"
+}

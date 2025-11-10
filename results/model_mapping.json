@@ -1,0 +1,86 @@
+{
+  "ResonantDecompositionAgent": {
+    "model": "results/models/final_pipeline.joblib",
+    "csv": "results/csv_files/features_extended.csv",
+    "description": "Decomposes time series into trend, seasonality, and residuals using STL decomposition"
+  },
+  "WaveletTransientAgent": {
+    "model": "results/models/lgb_final.joblib",
+    "csv": "results/csv_files/features_combined.csv",
+    "description": "Detects transient patterns and anomalies using wavelet transforms"
+  },
+  "BayesianFusionAgent": {
+    "model": "results/models/meta_lgb_safe_v2.joblib",
+    "csv": "results/csv_files/features_baseline.csv",
+    "description": "Combines multiple models using Bayesian optimization"
+  },
+  "UncertaintySynthesisAgent": {
+    "model": "results/models/meta_lgb_tuned.joblib",
+    "csv": "results/csv_files/features_postpreproc.csv",
+    "description": "Quantifies prediction uncertainty using ensemble methods"
+  },
+  "ChangePointRegimeAgent": {
+    "model": "results/models/base_lgb_full.joblib",
+    "csv": "results/csv_files/combined_pca_kmeans_dtw_clusters.csv",
+    "description": "Identifies structural breaks and regime changes in time series"
+  },
+  "TeslaOscillationAgent": {
+    "model": "results/models/base_xgb_full.joblib",
+    "csv": "results/csv_files/seasonal_means_by_month.csv",
+    "description": "Models periodic oscillations and cycles in temperature data"
+  },
+  "KoopmanModeAgent": {
+    "model": "results/models/base_rf_full.joblib",
+    "csv": "results/csv_files/features_featuretools.csv",
+    "description": "Performs dynamic mode decomposition for time series analysis"
+  },
+  "PhysicsInformedThermalAgent": {
+    "model": "results/models/meta_lgb_dynamic.joblib",
+    "csv": "results/csv_files/features_postpreproc_new.csv",
+    "description": "Incorporates physical constraints into thermal modeling"
+  },
+  "TemporalGraphResonanceAgent": {
+    "model": "results/models/meta_lgb_lgb.joblib",
+    "csv": "results/csv_files/combined_pca_kmeans_dtw_combined_features.csv",
+    "description": "Analyzes temporal patterns using graph-based methods"
+  },
+  "DataAugmentationAgent": {
+    "model": "results/models/final_new_features_pipeline.joblib",
+    "csv": "results/csv_files/features_extended_20250917T080426.csv",
+    "description": "Generates synthetic training data for improved model robustness"
+  },
+  "DataIngestAgent": {
+    "model": "results/models/artifacts/rf_model.joblib",
+    "csv": "results/csv_files/features_basic.csv",
+    "description": "Handles data loading, validation, and preprocessing"
+  },
+  "DriftDetectorAgent": {
+    "model": "results/models/artifacts/robust_var_model_1758371945.joblib",
+    "csv": "results/csv_files/model_test_residuals.csv",
+    "description": "Monitors and detects concept drift in the time series data"
+  },
+  "TrackerAgent": {
+    "model": "results/models/artifacts/var_model_member_0_1758374083.joblib",
+    "csv": "results/csv_files/pipeline_metadata.csv",
+    "description": "Tracks model performance and data quality metrics over time"
+  },
+  "TrainerAgent": {
+    "model": "results/models/artifacts/het_mean_model_1758371437.joblib",
+    "csv": "results/csv_files/model_test_metrics.csv",
+    "description": "Handles model training, validation, and hyperparameter tuning"
+  },
+  "UncertaintyAgent": {
+    "model": "results/models/artifacts/het_var_model_1758371437.joblib",
+    "csv": "results/csv_files/features_aggregates_pandas.csv",
+    "description": "Quantifies and manages prediction uncertainty"
+  },
+  "output_format": {
+    "include_timestamp": true,
+    "include_agent_description": true,
+    "include_model_info": true,
+    "include_feature_importance": true,
+    "include_prediction_interval": true,
+    "round_decimals": 4,
+    "show_top_features": 5
+  }
+}

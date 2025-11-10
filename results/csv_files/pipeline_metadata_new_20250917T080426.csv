@@ -1,0 +1,8 @@
+,0
+timestamp,2025-09-17T08:04:36.570436
+af_available,True
+used_autofeat,False
+final_model,LGBMRegressor
+n_features_before,81
+n_features_after,81
+pipeline_artifact,final_new_features_pipeline_20250917T080426.joblib

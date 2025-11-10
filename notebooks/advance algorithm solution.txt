@@ -1,0 +1,382 @@
+Nice — love the energy, buddy. Below I give a focused, practical **advanced-algorithms playbook** you can copy–paste into your project. It’s ordered by likely ROI and includes concrete, runnable code snippets (LightGBM, XGBoost, CatBoost, stacking, RF, LSTM, TFT notes, Gaussian Process), plus **Optuna**-based hyperparameter tuning, time-series CV, and how to produce iterative multi-step forecasts and prediction intervals.
+
+I assume you already have:
+
+* your feature CSV (`surface-air-temperature-monthly-mean-extended.csv`) and an **aligned** feature list (`expected_features.json`) (see earlier steps),
+* Python 3.10 venv activated,
+* `src/` utilities available (`align_features`, `make_feature_matrix` etc.) — I’ll show small helper functions too.
+
+If a package is missing, I include the `pip install` note. Don’t run everything at once — install one library at a time.
+
+---
+
+# Quick installs (run in venv; install only what you need)
+
+```powershell
+pip install lightgbm xgboost catboost scikit-learn optuna joblib pandas numpy matplotlib
+# For PyTorch / LSTM / pytorch-forecasting (heavy, GPU recommended)
+pip install torch torchvision torchaudio  # choose correct wheel for CUDA if needed (see pytorch site)
+pip install pytorch-lightning pytorch-forecasting
+# For Gaussian Process
+pip install scikit-learn
+```
+
+---
+
+# Common helpers (paste at top of notebook/script)
+
+```python
+import os, sys, json
+from pathlib import Path
+import numpy as np
+import pandas as pd
+from joblib import dump, load
+from sklearn.model_selection import TimeSeriesSplit
+from sklearn.metrics import mean_squared_error, r2_score, mean_absolute_error
+
+PROJECT_ROOT = r"E:\AI-Engineering-Capstone-Projects\AirTempTs\PRAICP-1003-AirTempTS"
+DATA_EXTENDED = os.path.join(PROJECT_ROOT, "data", "surface-air-temperature-monthly-mean-extended.csv")
+MODELS_DIR = os.path.join(PROJECT_ROOT, "results", "models")
+os.makedirs(MODELS_DIR, exist_ok=True)
+
+def rmse(y_true, y_pred): return np.sqrt(mean_squared_error(y_true, y_pred))
+def save_model(model, name): dump(model, os.path.join(MODELS_DIR, name))
+```
+
+If you don’t yet have `expected_features.json`, produce it from your training pipeline or from the extended CSV column list (but consistent across training & inference). Example:
+
+```python
+# example: canonical features from your extended CSV (but better to use training feature list)
+df_ext = pd.read_csv(DATA_EXTENDED, parse_dates=['month'])
+expected_cols = [c for c in df_ext.columns if c not in ('month','mean_temp')]
+# optionally persist
+with open(os.path.join(MODELS_DIR,"expected_features.json"),"w") as f:
+    json.dump(expected_cols, f)
+```
+
+Helper to align features before prediction:
+
+```python
+def align_features(df, expected_cols, fill_value=0.0):
+    out = df.copy()
+    for col in expected_cols:
+        if col not in out.columns:
+            out[col] = fill_value
+    # preserve order
+    return out[expected_cols].astype(float)
+```
+
+---
+
+# 1) LightGBM — high ROI (training, CV, Optuna tuning)
+
+### Basic train + TimeSeries CV
+
+```python
+from sklearn.pipeline import Pipeline
+from sklearn.preprocessing import StandardScaler
+import lightgbm as lgb
+
+def train_lgb(X_train, y_train, params=None):
+    params = params or {"n_estimators":500, "learning_rate":0.05, "random_state":42}
+    model = lgb.LGBMRegressor(**params)
+    model.fit(X_train, y_train, eval_set=[(X_train, y_train)], verbose=False)
+    return model
+
+# TimeSeriesSplit CV
+def cv_lgb(X, y, n_splits=5):
+    tscv = TimeSeriesSplit(n_splits=n_splits)
+    results = []
+    for i, (tr_idx, te_idx) in enumerate(tscv.split(X)):
+        Xtr, Xte = X.iloc[tr_idx], X.iloc[te_idx]
+        ytr, yte = y.iloc[tr_idx], y.iloc[te_idx]
+        m = train_lgb(Xtr, ytr)
+        yhat = m.predict(Xte)
+        results.append((rmse(yte, yhat), r2_score(yte, yhat)))
+        print(f"Split {i+1} RMSE {rmse(yte,yhat):.4f} R2 {r2_score(yte,yhat):.4f}")
+    return results
+```
+
+### Optuna tuning for LightGBM (practical search)
+
+```python
+import optuna
+from sklearn.model_selection import train_test_split
+
+def objective_lgb(trial, X, y):
+    param = {
+        "n_estimators": trial.suggest_int("n_estimators", 100, 2000),
+        "learning_rate": trial.suggest_loguniform("learning_rate", 1e-3, 0.2),
+        "num_leaves": trial.suggest_int("num_leaves", 8, 256),
+        "min_child_samples": trial.suggest_int("min_child_samples", 5, 200),
+        "subsample": trial.suggest_uniform("subsample", 0.4, 1.0),
+        "colsample_bytree": trial.suggest_uniform("colsample_bytree", 0.4, 1.0),
+        "reg_alpha": trial.suggest_loguniform("reg_alpha", 1e-8, 10.0),
+        "reg_lambda": trial.suggest_loguniform("reg_lambda", 1e-8, 10.0),
+        "random_state": 42
+    }
+    # simple holdout to speed up study (or do CV but slower)
+    Xtr, Xval, ytr, yval = train_test_split(X, y, test_size=0.2, shuffle=False)
+    model = lgb.LGBMRegressor(**param)
+    model.fit(Xtr, ytr, eval_set=[(Xval, yval)], early_stopping_rounds=50, verbose=False)
+    pred = model.predict(Xval)
+    return mean_squared_error(yval, pred)  # minimize MSE
+
+def run_optuna_lgb(X, y, n_trials=50):
+    study = optuna.create_study(direction="minimize")
+    study.optimize(lambda t: objective_lgb(t, X, y), n_trials=n_trials)
+    print("Best params:", study.best_params)
+    return study.best_params
+
+# Usage:
+# X,y defined (aligned features)
+# best_params = run_optuna_lgb(X, y, n_trials=40)
+# final_model = train_lgb(X, y, params=best_params)
+# save_model(final_model,"lgb_optuna.joblib")
+```
+
+---
+
+# 2) XGBoost & CatBoost (quick examples)
+
+```python
+# XGBoost
+import xgboost as xgb
+def train_xgb(X_train,y_train, params=None):
+    params = params or {"n_estimators":500,"learning_rate":0.05,"random_state":42}
+    model = xgb.XGBRegressor(**params)
+    model.fit(X_train,y_train, eval_set=[(X_train,y_train)], verbose=False)
+    return model
+
+# CatBoost (handles categorical, but for numeric features it's fine)
+from catboost import CatBoostRegressor
+def train_catboost(X_train,y_train, params=None):
+    params = params or {"iterations":1000,"learning_rate":0.03,"random_seed":42,"verbose":100}
+    model = CatBoostRegressor(**params)
+    model.fit(X_train,y_train)
+    return model
+```
+
+Use the same CV function pattern as LightGBM to compare.
+
+---
+
+# 3) RandomForest / ExtraTrees baseline
+
+```python
+from sklearn.ensemble import RandomForestRegressor, ExtraTreesRegressor
+
+def train_rf(X,y):
+    m = RandomForestRegressor(n_estimators=200, random_state=42, n_jobs=-1)
+    m.fit(X,y)
+    return m
+```
+
+RF is robust and often a good baseline before heavy GBMs.
+
+---
+
+# 4) Stacking / Ensembling (out-of-fold stacking to avoid leakage)
+
+High-level approach:
+
+1. Generate OOF predictions from base learners using TimeSeriesSplit.
+2. Use these OOF predictions as meta-features to train a meta-learner (e.g., Ridge or LightGBM).
+
+```python
+from sklearn.linear_model import Ridge
+from sklearn.model_selection import TimeSeriesSplit
+
+def oof_predictions(models, X, y, n_splits=5):
+    tscv = TimeSeriesSplit(n_splits=n_splits)
+    oof = np.zeros((len(X), len(models)))
+    test_idx = None
+    for fold, (tr, te) in enumerate(tscv.split(X)):
+        Xtr, Xte = X.iloc[tr], X.iloc[te]
+        ytr = y.iloc[tr]
+        for m_idx, model_fn in enumerate(models):
+            m = model_fn(Xtr, ytr)   # model_fn returns a fitted model
+            oof[te, m_idx] = m.predict(Xte)
+    return oof
+
+# Example usage:
+base_models = [lambda X,y: train_lgb(X,y), lambda X,y: train_xgb(X,y), lambda X,y: train_rf(X,y)]
+oof = oof_predictions(base_models, X, y, n_splits=5)
+meta = Ridge()
+meta.fit(oof, y.values)   # training meta on full oof rows
+# To predict on new X_new: generate base model predictions trained on full X,y then stack
+```
+
+Better: use libraries like `mlens` or `vecstack` but manual stack above keeps control for time series.
+
+---
+
+# 5) LSTM / GRU (PyTorch) — sequence modeling outline
+
+**Notes:** LSTM needs sliding windows as input. This code is a minimal training loop (CPU/GPU). Prepare dataset: create encoder windows (e.g., last 36 months) and decode horizon (12 months). For faster experimentation use small epochs.
+
+```python
+import torch
+from torch import nn, optim
+from torch.utils.data import Dataset, DataLoader
+
+class TimeSeriesWindowDataset(Dataset):
+    def __init__(self, series, input_size=36, target_size=1):
+        self.series = series.values.astype(float)
+        self.input_size = input_size
+        self.target_size = target_size
+    def __len__(self):
+        return len(self.series) - self.input_size - self.target_size + 1
+    def __getitem__(self, idx):
+        X = self.series[idx: idx + self.input_size]
+        y = self.series[idx + self.input_size: idx + self.input_size + self.target_size]
+        return torch.tensor(X, dtype=torch.float32).unsqueeze(-1), torch.tensor(y, dtype=torch.float32).squeeze(-1)
+
+class SimpleLSTM(nn.Module):
+    def __init__(self, input_size=1, hidden_size=64, num_layers=2):
+        super().__init__()
+        self.lstm = nn.LSTM(input_size, hidden_size, num_layers, batch_first=True)
+        self.fc = nn.Linear(hidden_size, 1)  # single-step output
+    def forward(self, x):
+        out, _ = self.lstm(x)
+        out = out[:, -1, :]  # last time step
+        return self.fc(out).squeeze(-1)
+
+# prepare dataset
+df_raw = pd.read_csv(DATA_EXTENDED, parse_dates=['month'])
+series = df_raw['mean_temp']
+dataset = TimeSeriesWindowDataset(series, input_size=36, target_size=1)
+loader = DataLoader(dataset, batch_size=16, shuffle=False)
+# train
+device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+model = SimpleLSTM().to(device)
+opt = optim.Adam(model.parameters(), lr=1e-3)
+loss_fn = nn.MSELoss()
+for epoch in range(20):
+    model.train()
+    total = 0
+    for Xb, yb in loader:
+        Xb, yb = Xb.to(device), yb.to(device)
+        opt.zero_grad()
+        out = model(Xb)
+        loss = loss_fn(out, yb)
+        loss.backward()
+        opt.step()
+        total += loss.item() * Xb.size(0)
+    print(f"Epoch {epoch+1} loss {total/len(dataset):.6f}")
+# forecasting multi-step: iterative predict and append predicted value to input window
+```
+
+LSTM path is higher cost but useful if you want sequence modeling. For multi-step horizon, iteratively feed predictions.
+
+---
+
+# 6) TemporalFusionTransformer (pytorch-forecasting) — note & skeleton
+
+This requires `pytorch-forecasting` and `pytorch-lightning`. I won’t paste a full TFT training loop (heavy), but here’s skeleton:
+
+```python
+# skeleton only
+from pytorch_forecasting import TimeSeriesDataSet, TemporalFusionTransformer
+from pytorch_lightning import Trainer
+
+# create TimeSeriesDataSet (convert your df to required format: group_id, time_idx, target, known_reals, etc.)
+# training = TimeSeriesDataSet(...)
+# train_dataloader = training.to_dataloader(train=True, batch_size=32)
+# val_dataloader = ...
+# tft = TemporalFusionTransformer.from_dataset(training, learning_rate=1e-3, hidden_size=16)
+# trainer = Trainer(gpus=1, max_epochs=20)
+# trainer.fit(tft, train_dataloader, val_dataloader)
+```
+
+Use TFT only if you have GPU and time—best for complex covariates.
+
+---
+
+# 7) Gaussian Process (sklearn) — for uncertainty (small datasets)
+
+GP is O(n³) so only for small datasets (e.g., aggregated monthly if < 500 points okay).
+
+```python
+from sklearn.gaussian_process import GaussianProcessRegressor
+from sklearn.gaussian_process.kernels import RBF, ConstantKernel as C
+
+X = np.arange(len(series)).reshape(-1,1)  # time index
+y = series.values
+kernel = C(1.0, (1e-3, 1e3)) * RBF(10, (1e-2, 1e2))
+gpr = GaussianProcessRegressor(kernel=kernel, n_restarts_optimizer=5, alpha=0.1)
+gpr.fit(X, y)
+X_future = np.arange(len(series), len(series)+12).reshape(-1,1)
+y_pred, y_std = gpr.predict(X_future, return_std=True)
+```
+
+---
+
+# 8) Prediction intervals for ML models (practical methods)
+
+* **Quantile regression with LightGBM**: set `objective='quantile'` and train separate models for each quantile (e.g., 0.05, 0.5, 0.95).
+* **Bootstrap ensembles**: re-sample training set and train many models — aggregate percentiles.
+* **Conformal prediction / MAPIE** — library for calibrated intervals.
+
+Quick LightGBM quantile example:
+
+```python
+def train_lgb_quantile(X,y, alpha):
+    model = lgb.LGBMRegressor(objective='quantile', alpha=alpha, n_estimators=500)
+    model.fit(X,y)
+    return model
+
+lower = train_lgb_quantile(X_train,y_train, 0.05).predict(X_test)
+median = train_lgb(X_train,y_train).predict(X_test)
+upper = train_lgb_quantile(X_train,y_train, 0.95).predict(X_test)
+```
+
+Bootstrap sketch (slow but easy):
+
+```python
+def bootstrap_interval(X,y,X_test,n_boot=100):
+    preds = np.zeros((n_boot, len(X_test)))
+    n = len(X)
+    for i in range(n_boot):
+        idx = np.random.choice(range(n), size=n, replace=True)
+        model = train_lgb(X.iloc[idx], y.iloc[idx])
+        preds[i,:] = model.predict(X_test)
+    lower = np.percentile(preds, 2.5, axis=0)
+    upper = np.percentile(preds, 97.5, axis=0)
+    return lower, upper
+```
+
+---
+
+# 9) Practical tips to improve accuracy (short)
+
+* **Feature engineering first**: more often gives bigger gains than swapping models. Add STL trend/residual features, Fourier terms, longer lags, rolling quantiles.
+* **Model ensembling**: combine LightGBM + XGBoost + CatBoost OOF stacking.
+* **Hyperparameter tuning**: use Optuna (fast trials, pruning).
+* **Time-series CV**: always validate with TimeSeriesSplit to avoid leakage.
+* **Feature selection**: use SHAP or Boruta to reduce noisy features.
+* **Scale and normalization**: tree models don’t need scaling, but LSTM does.
+* **Use GPU for deep models** (PyTorch/TFT).
+* **Monitor overfitting**: track train vs CV error; use early stopping.
+
+---
+
+# 10) Suggested workflow (what to run next)
+
+1. Align features and persist `expected_features.json`.
+2. Run LightGBM CV (`cv_lgb`) to establish baseline.
+3. Run Optuna for LightGBM (40–100 trials).
+4. Train XGBoost and CatBoost with similar CV and compare.
+5. Build stacking ensemble using OOF predictions.
+6. Retrain best model on full data and run iterative multi-step forecast export.
+7. Add uncertainty via bootstrap or quantile models.
+8. If still wanting gains, try LSTM or TFT (GPU recommended).
+
+---
+
+If you want, I can now:
+
+* produce a single **ready-to-run notebook cell** that: (A) loads extended CSV, (B) aligns features, (C) runs LightGBM CV, (D) runs a short Optuna study, (E) saves best model — all wired to your project paths; **or**
+* generate a **stacking example script** that produces final forecast CSV with bootstrap intervals.
+
+Which one shall I output next, buddy?

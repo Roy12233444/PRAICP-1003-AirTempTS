@@ -1,0 +1,44 @@
+# PRAICP-1003 AirTempTS - core requirements (Python 3.10)
+pandas>=1.3,<2
+numpy>=1.19,<2
+scipy>=1.7,<2
+matplotlib>=3.4,<4
+seaborn>=0.11,<1
+scikit-learn>=1.0,<2
+statsmodels>=0.13,<1
+pmdarima>=1.8,<2
+
+jupyter>=1.0
+ipykernel>=6.0
+
+# Utilities / small helpers
+python-dateutil
+tqdm
+plotly>=5.0
+missingno>=0.5
+
+# Optional small EDA (install only if you want profiling)
+# ydata-profiling>=4.1
+# dtale>=2.0
+
+
+# requirements.txt  (trimmed core + recommended)
+numpy
+pandas
+scipy
+scikit-learn
+statsmodels
+joblib
+matplotlib
+tqdm
+pywt
+ruptures
+pmdarima
+lightgbm
+xgboost
+catboost
+optuna
+boruta
+shap
+mapie
+pyarrow

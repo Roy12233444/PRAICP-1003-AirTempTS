@@ -1,0 +1,13 @@
+{
+  "method": "cvplus_quantile_fixed_train",
+  "use_lightgbm": true,
+  "n_train": 359,
+  "n_test": 90,
+  "n_features": 5,
+  "n_splits": 5,
+  "q_cvplus": 0.0,
+  "coverage_test": 0.6333333333333333,
+  "avg_width_test": 0.9546527113827733,
+  "mse_mid_test": 0.24480642623424242,
+  "timestamp": 1758369464
+}

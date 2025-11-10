@@ -1,0 +1,10 @@
+{
+  "q_original": 0.0,
+  "q_used": 0.06116920098959895,
+  "coverage_safe": 0.7,
+  "avg_width_safe": 1.0769911133619725,
+  "mse_safe": 0.24480642623424242,
+  "n_train": 359,
+  "n_test": 90,
+  "timestamp": 1758369964
+}

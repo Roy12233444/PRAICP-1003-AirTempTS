@@ -1,0 +1,291 @@
+Great — I’ll list **advanced / unique** algorithms and technologies you *haven’t* (or probably haven’t) used yet, and for each give a compact **plan**: when to try it, what it needs, tuning/validation approach, compute, benefits and pitfalls, and how to integrate with your existing pipeline. No code — just names + an actionable plan you can copy into `03_Baseline_Models.ipynb` as a roadmap.
+
+---
+
+# Priority A (high upside for time-series / forecasting)
+
+### 1) Temporal Fusion Transformer (TFT)
+
+**What:** Transformer-based model built for interpretable multi-horizon time-series forecasting (handles static + time-varying + categorical inputs, attention + gating).
+**Plan:**
+
+* When: if you have multivariate inputs and need interpretable attention on exogenous features or multi-horizon forecasts.
+* Inputs: aligned features (lags, exogenous vars), time index, categorical encodings.
+* Training: train on series windows; use early stopping and learning rate schedule.
+* Tune: hidden size, attention heads, dropout, learning rate, lookback window.
+* Validation: TimeSeriesSplit + holdout horizon matching production horizon.
+* Compute: GPU recommended; medium-high memory.
+* Benefits: strong performance on complex seasonal/trend interactions, per-feature attention.
+* Pitfalls: heavy to tune and slower to train; needs careful data prep.
+* Integration: export as saved model; predict base models for stacking or use as a standalone meta-learner.
+
+---
+
+### 2) N-BEATS / N-HiTS
+
+**What:** Neural architectures specifically for long-range univariate forecasting (N-BEATS) and newer N-HiTS variant.
+**Plan:**
+
+* When: univariate series with strong non-linear trends and seasonality.
+* Inputs: raw series (lags/rolling not necessary but allowed), sliding windows.
+* Training: multiple stacks/residual blocks.
+* Tune: number of blocks, width, window length, loss (MAE vs MSE).
+* Validation: rolling-origin CV.
+* Compute: CPU ok, GPU better for speed.
+* Benefits: state-of-the-art for pure time-series forecasting without heavy feature engineering.
+* Pitfalls: may overfit if data short; requires many epochs.
+* Integration: use as alternative to tree ensembles; include in stacking OOF.
+
+---
+
+### 3) DeepAR / DeepState (Probabilistic forecasting via GluonTS)
+
+**What:** Probabilistic autoregressive RNNs (Amazon GluonTS) giving full predictive distributions.
+**Plan:**
+
+* When: you need prediction intervals / probabilistic forecasts.
+* Inputs: time series, optional covariates.
+* Training: negative log-likelihood objective for predictive distribution.
+* Tune: number of layers, cell size, dropout, context length.
+* Validation: use CRPS or pinball loss + quantile checks.
+* Compute: GPU preferred.
+* Benefits: direct probabilistic forecasting and uncertainty quantification.
+* Pitfalls: more complex metrics and calibration checks required.
+* Integration: outputs quantiles used for decisions and for conformal calibration.
+
+---
+
+### 4) Temporal Convolutional Networks (TCN)
+
+**What:** Convolutional sequence models with dilations — faster and sometimes more stable than RNNs for sequence tasks.
+**Plan:**
+
+* When: sequence-to-one or sequence-to-sequence tasks; good for long-range dependencies.
+* Inputs: lag windows, exogenous features.
+* Training: standard supervised regression.
+* Tune: kernel size, dilation schedule, number of stacks.
+* Compute: GPU helps; generally faster than RNN/Transformer per epoch.
+* Benefits: simple to implement, strong baseline for deep time-series.
+* Pitfalls: requires windowing; architecture choices matter.
+* Integration: used as a base model or meta.
+
+---
+
+# Priority B (advanced ensembles, NAS, AutoML)
+
+### 5) AutoGluon (AutoML for tabular & time-series)
+
+**What:** AutoML with stacked ensembles, robust defaults and good performance out-of-the-box.
+**Plan:**
+
+* When: want a strong automated baseline quickly, especially for tabular features.
+* Inputs: X,y (tabular).
+* Training: single API does ensembling & stacking; can set time budget.
+* Tune: allow more time or restrict model families.
+* Compute: medium to high depending on time budget.
+* Benefits: often beats hand-tuned models; quick discovery.
+* Pitfalls: less transparent; heavier resource use.
+* Integration: treat AutoGluon stack as a candidate base or production model.
+
+---
+
+### 6) Neural Architecture Search (AutoKeras / NAS)
+
+**What:** Auto-discovery of neural architectures (for time-series networks).
+**Plan:**
+
+* When: you want automated architecture search for e.g., CNN/LSTM/TFT variations.
+* Inputs: same as network models.
+* Training: runs many trials; needs compute/time.
+* Tune: search budget, search algorithm.
+* Compute: very high.
+* Benefits: may yield novel architectures tuned to your data.
+* Pitfalls: expensive/time-consuming.
+* Integration: use only after strong baselines; consider as experimental.
+
+---
+
+### 7) TPOT (Genetic-programming AutoML — already noted)
+
+**What:** Evolve preprocessing + model pipelines automatically (good for feature / pipeline discovery).
+**Plan:**
+
+* Use with limited generations/population; prefer small subsets first; extract pipelines for later use.
+
+---
+
+# Priority C (novel statistical / probabilistic / interpretable)
+
+### 8) Gaussian Processes (GPyTorch)
+
+**What:** Probabilistic, interpretable nonparametric regression with uncertainty.
+**Plan:**
+
+* When: small datasets, need calibrated uncertainty and interpretability.
+* Tune: kernels (RBF + periodic), inducing points for scalability.
+* Compute: expensive with >thousands of points (use sparse approximations).
+* Integration: useful as calibration/uncertainty model or component.
+
+---
+
+### 9) Quantile Regression Forests & Gradient Quantile Methods
+
+**What:** Tree-based quantile estimators (lightly different from point-estimators) — give quantiles easily.
+**Plan:**
+
+* When: need intervals without full probabilistic models.
+* Integration: use alongside point models in decision thresholds.
+
+---
+
+### 10) Conformal Prediction wrappers (split / CV conformal)
+
+**What:** Model-agnostic method to produce calibrated prediction intervals from point predictions.
+**Plan:**
+
+* When: you need valid, finite-sample-calibrated intervals.
+* Implementation: holdout or CV-based conformal wrappers around any predictor (e.g., LGBM).
+* Benefits: robust coverage guarantees.
+* Pitfalls: slightly wider intervals; computational overhead of held-out calibration.
+
+---
+
+# Priority D (production & observability / MLOps)
+
+### 11) Model Monitoring, Drift Detection & Retraining (e.g., Evidently / NannyML)
+
+**What:** Continuous monitoring for data drift, concept drift, and model performance.
+**Plan:**
+
+* When: deploying `production_model.joblib`.
+* Implementation: set baseline metrics, implement alerts when drift or performance drop exceeds threshold, schedule retraining pipelines.
+
+---
+
+### 12) MLflow / DVC + Model Registry
+
+**What:** Track experiments, parameters, artifacts and use registry for staged promotion (dev -> staging -> prod).
+**Plan:** integrate training runs, CV results, hyperparameters and production model path into registry JSON/MLflow.
+
+---
+
+### 13) Lightweight Serving & A/B testing (BentoML / Seldon / FastAPI)
+
+**What:** Serve models, run A/B tests between candidates (stacked vs base\_rf etc.).
+**Plan:** containerize production wrapper with deterministic pre-processing; expose predict & health endpoints; route traffic with A/B split.
+
+---
+
+# Feature-automation & engineered features (complementary tools)
+
+### 14) Featuretools (Deep Feature Synthesis)
+
+**What:** Auto-generate relational features for tabular/temporal data.
+**Plan:** use to discover interaction / aggregation features if you have multiple related tables (not only series).
+
+### 15) tsfresh / catch22 / Kats (Ames/Meta)
+
+**What:** Automatic extraction of hundreds of time-series features (fft, entropy, autocorr metrics).
+**Plan:** extract candidate features then run feature selection (Boruta / Lasso / mutual information) to compress.
+
+---
+
+# Suggested roadmap (which to try and in what order)
+
+1. **Try TFT** (if you can use GPU) — very powerful for exogenous multivariate forecasting.
+2. **Add N-BEATS / N-HiTS** as a strong univariate deep baseline (faster to try than TFT).
+3. **Add Probabilistic models** (DeepAR/DeepState) or Conformal wrappers to supply prediction intervals.
+4. **Integrate AutoGluon for a “one-click” ensemble baseline** (useful sanity check).
+5. **Run Optuna/NAS only after** stable OOF matrices exist — don’t waste compute early.
+6. **Add Model Monitoring & Drift (Evidently)** when you promote a production model.
+7. **Optional experiments**: Gaussian Processes for small subsets; Featuretools/tsfresh for creative features.
+
+---
+
+# How these fit your current pipeline (integration notes)
+
+* **Feature contract:** continue to use `expected_features.json` — any new model (TFT, N-BEATS) should either accept the same X or be trained on raw series; keep mapping code to convert features to model input.
+* **OOF/stacking:** include each new candidate in OOF building; use your robust saved-model logic for fallback.
+* **Production selection:** keep the `holdout RMSE` rule and add a **calibration** metric for probabilistic predictors (CRPS/pinball).
+* **Compute/Env:** add GPU-enabled cell(s) for TFT / N-BEATS / DeepAR trials; install CUDA drivers if needed.
+
+---
+
+# One-line summary to paste at top of `03_Baseline_Models.ipynb`
+
+Add this paragraph to explain the new tech plan:
+
+> **Planned advanced additions:** Temporal Fusion Transformer (TFT), N-BEATS / N-HiTS, probabilistic models (DeepAR/DeepState), Temporal Convolutional Networks, AutoGluon AutoML, Neural Architecture Search, Gaussian Process regression, conformal prediction, and model/serving observability (Evidently/MLflow/BentoML). These will be evaluated via OOF + holdout RMSE/CRPS, added to the stacking candidates, and promoted to production only if they improve holdout performance and calibration.
+
+---
+
+Want me to:
+
+* rank these for **compute vs expected uplift** (quick table), or
+* prepare a one-cell plan for **how to add TFT** (high level steps you can paste, still without code)?
+
+
+
+
+Nice — here’s a short, copy-paste friendly **note** you can drop into your notebook (or `03_Baseline_Models.ipynb`) about **H2O AutoML** and **TPOT**, with practical tips, config recommendations, pitfalls and how to integrate them with your pipeline. Keep it as a single block you can paste where you keep ⚠️ notes.
+
+# ⚠️ H2O AutoML & TPOT — quick practical notes
+
+**H2O AutoML (summary & practical tips)**
+
+* **What:** AutoML engine (stacking + many models) that finds strong tabular models quickly. Good for automated baseline discovery and leaderboards.
+* **Requirements:** Java runtime (OpenJDK 11+ recommended) *must be installed on the system* before `pip install h2o` or `import h2o`.
+
+  * On Windows/macOS/Linux install OpenJDK or adoptopenjdk and ensure `java` is on PATH.
+* **Launch:** call `h2o.init()` (optionally set `max_mem_size="4G"`). Use the web UI (`http://localhost:54321`) for leaderboards.
+* **Recommended config for your use-case:** limit search to save time:
+
+  * `max_runtime_secs` (wall-clock budget) or `max_models` (model count)
+  * `include_algos` to restrict (e.g., `["GBM","XGBoost","GLM","StackedEnsemble"]`)
+  * `stopping_metric` (RMSE/MAPE) and `seed` for reproducibility
+* **Time-series usage:** H2O does **not** have native multi-horizon time-series aware CV — build time-aware features (lags, rolling stats, month cyc) and perform time-based train/holdout yourself; then pass tabular X/y to H2O.
+* **Saving/exporting models:** save leaderboards and models; export production model as a **MOJO** for fast, Java-based serving (`h2o.save_model()` / `h2o.download_mojo()`), or save Python pickle wrapper. MOJO is portable and fast.
+* **Benefits:** powerful ensemble baseline, quick discovery, strong performance.
+* **Pitfalls:** heavy (Java + memory), not time-series-native (so must avoid leakage), server process may conflict in notebooks if not shutdown properly. Use strict holdout/OOF to avoid leakage.
+
+**TPOT (summary & practical tips)**
+
+* **What:** Genetic-programming AutoML that evolves full pipelines (preprocessing + estimator). Good for pipeline discovery.
+* **Requirements:** `pip install tpot` (and `deap`, `update_checker`); CPU-bound (no GPU), can be slow.
+* **Recommended config for practical runs:** use **very small** search budgets for baseline:
+
+  * `generations=3..10`, `population_size=20..50` for quick runs
+  * `max_time_mins` to limit run time
+  * `cv=TimeSeriesSplit(...)` if you integrate time-aware CV (but TPOT does not natively support time-series CV — perform feature/label engineering first and use `cv` carefully)
+  * `scoring`: use same metric as pipeline selection (RMSE/MAPE)
+  * `n_jobs=-1` to use all CPUs
+  * enable `warm_start` / `verbosity` as needed
+* **Time-series usage:** TPOT is not time-series aware — you must supply engineered lag features and ensure `cv` is time-aware. Do not feed future info.
+* **Saving/exporting:** TPOT can `export('pipeline.py')` to get the final pipeline code. This exported pipeline is a great starting point to integrate, wrap, and tune further.
+* **Benefits:** automatic pipeline discovery including preprocessing choices.
+* **Pitfalls:** extremely slow at full settings; pipelines may use odd preprocessing combinations that need sanitizing; sometimes produces pipelines that are hard to maintain — always inspect exported code.
+
+**Operational / integration rules (H2O & TPOT together with your pipeline)**
+
+1. **No leakage:** ALWAYS train these on features that were computed only from past data (lags/rolling) and use time-based CV / holdout. Keep `expected_features.json` contract.
+2. **Budget control:** set `max_runtime_secs` (H2O) or `max_time_mins` (TPOT) for predictable runtimes. Start small, scale up if promising.
+3. **Use sampled pilot runs:** test on a smaller subset (e.g., 20–40% of rows) first to sanity-check workflows.
+4. **Model artifacts:** save leaderboards, model files and exported pipeline code into `results/models` and move non-predictor artifacts to `results/models/artifacts`. Add registry entries (date, params, metrics).
+5. **OOF + stacking:** always generate OOF predictions for any H2O/TPOT candidate before stacking. Treat H2O / TPOT output as **base candidates** only after OOF validation.
+6. **Reproducibility:** set seeds (`seed` in H2O; `random_state` for TPOT and underlying estimators) and record the run environment (Java version, package versions).
+7. **Monitor resources:** H2O spins a JVM — monitor Java memory and shut down `h2o.shutdown()` after runs.
+
+**Quick checklist you can paste in notebook (one-liner actions):**
+
+* Ensure Java installed & `java -version` OK.
+* `pip install --upgrade h2o tpot deap` (or install only what you need).
+* For H2O: `h2o.init(max_mem_size="4G"); aml = H2OAutoML(max_runtime_secs=600, seed=42, include_algos=["GBM","XGBoost","StackedEnsemble"])`
+* For TPOT: `TPOTRegressor(generations=5, population_size=40, cv=TimeSeriesSplit(...), scoring='neg_root_mean_squared_error', n_jobs=-1)` and export pipeline.
+* Save artifacts: model saved + leaderboard/pipeline exported to `results/models` and register.
+
+---
+
+If you want, I can now:
+
+* produce the **tiny code snippets** (safe, limited) you can paste under these notes for H2O init + minimal AutoML call and for a small-budget TPOT run, or
+* create a short run-plan cell that checks Java, installs packages if missing, and runs a small timed experiment (with safe budget limits) — you pick which.
